@@ -254,6 +254,16 @@ namespace JulMar.Atapi
         public void Shutdown()
         {
             _evtStop.Set();
+            foreach (TapiPhone phone in _phoneArray)
+            {
+                try
+                {
+                    phone.Close();
+                }
+                catch
+                {
+                }
+            }
             foreach (TapiLine line in _lineArray)
             {
                 try
@@ -582,13 +592,28 @@ namespace JulMar.Atapi
                 case TapiEvent.PHONE_BUTTON:
                 case TapiEvent.PHONE_CLOSE:
                 case TapiEvent.PHONE_DEVSPECIFIC:
-
+                    if (msg.dwCallbackInstance.ToInt32() != 0)
+                    {
+                        try
+                        {
+                            var del = (TapiEventCallback)Marshal.GetDelegateForFunctionPointer(msg.dwCallbackInstance, typeof(TapiEventCallback));
+                            if (del != null)
+                            {
+                                del(msg.dwMessageID, msg.dwParam1, msg.dwParam2, msg.dwParam3);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine(ex);
+                        }
+                    }
+                    break;
                 case TapiEvent.PHONE_REPLY:
                     HandleCompletion(msg.dwParam1.ToInt32(), msg.dwParam2);
                     break;
                 
                 case TapiEvent.PHONE_STATE:
-                    break;
+                    goto case TapiEvent.PHONE_CLOSE;
 
                 case TapiEvent.PHONE_CREATE:
                     {

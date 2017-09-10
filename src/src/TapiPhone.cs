@@ -942,6 +942,7 @@ namespace JulMar.Atapi
             do
             {
                 vs.dwTotalSize = neededSize;
+                vs.dwStringSize = (_rows * _cols * 2)+2;
                 IntPtr lpVs = Marshal.AllocHGlobal(neededSize);
                 Marshal.StructureToPtr(vs, lpVs, true);
                 rc = NativeMethods.phoneGetDisplay(_phoneOwner.Handle, lpVs);
@@ -957,6 +958,38 @@ namespace JulMar.Atapi
                     Marshal.Copy(lpVs, finalBuffer, 0, vs.dwNeededSize);
                     retValue = NativeMethods.GetString(finalBuffer, vs.dwStringOffset, vs.dwStringSize, vs.dwStringFormat);
                 }
+                else if (rc == NativeMethods.PHONEERR_INVALPHONEHANDLE)
+                {
+                    retValue = "PHONEERR_INVALPHONEHANDLE";
+                }
+                else if (rc == NativeMethods.PHONEERR_RESOURCEUNAVAIL)
+                {
+                    retValue = "PHONEERR_RESOURCEUNAVAIL";
+                }
+                else if (rc == NativeMethods.PHONEERR_INVALPOINTER)
+                {
+                    retValue = "PHONEERR_INVALPOINTER";
+                }
+                else if (rc == NativeMethods.PHONEERR_OPERATIONFAILED)
+                {
+                    retValue = "PHONEERR_OPERATIONFAILED";
+                }
+                else if (rc == NativeMethods.PHONEERR_INVALPHONESTATE)
+                {
+                    retValue = "PHONEERR_INVALPHONESTATE";
+                }
+                else if (rc == NativeMethods.PHONEERR_OPERATIONUNAVAIL)
+                {
+                    retValue = "PHONEERR_OPERATIONUNAVAIL";
+                }
+                else if (rc == NativeMethods.PHONEERR_UNINITIALIZED)
+                {
+                    retValue = "PHONEERR_UNINITIALIZED";
+                }
+                else if (rc == NativeMethods.PHONEERR_NOMEM) {
+                    retValue = "PHONEERR_NOMEM";
+                }
+
                 Marshal.FreeHGlobal(lpVs);
             }
             while (rc == NativeMethods.PHONEERR_STRUCTURETOOSMALL);
@@ -1918,7 +1951,7 @@ namespace JulMar.Atapi
 
             if (!IsOpen)
             {
-                _status = new PhoneStatus(this, ps, null);
+                _status = new PhoneStatus(this, ps, rawBuffer);
                 return;
             }
 
